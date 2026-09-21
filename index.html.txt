@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>无界AR膜询单助手</title>
+<style>
+:root{
+  --ink:#0b132b;--muted:#64748b;--line:#dce4ee;
+  --teal:#12b89a;--cyan:#dff8f3;--paper:#f4f7fb
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Microsoft YaHei",system-ui,sans-serif;font-size:16px
+}
+header{
+  height:88px;padding:0 4vw;display:flex;align-items:center;
+  justify-content:space-between;background:var(--ink);color:#fff
+}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{
+  display:grid;place-items:center;width:46px;height:46px;
+  border:2px solid #3de1c2;border-radius:14px;
+  font-weight:800;color:#3de1c2
+}
+.brand h1{font-size:21px;margin:0 0 4px}
+.brand p{font-size:13px;color:#a8b4ca;margin:0}
+.pill{
+  background:#18304f;color:#76ead4;padding:8px 12px;
+  border-radius:999px;font-size:13px
+}
+main{
+  display:grid;grid-template-columns:370px 1fr;
+  gap:22px;padding:24px 4vw;min-height:calc(100vh - 125px)
+}
+.panel,.workspace{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  box-shadow:0 10px 30px rgba(26,42,74,.06)
+}
+.input-panel{padding:26px;align-self:start}
+.step{
+  font-size:12px;letter-spacing:.14em;
+  color:var(--teal);font-weight:800
+}
+.input-panel h2{font-size:24px;margin:8px 0 20px}
+.drop{
+  border:1.5px dashed #92a3b8;border-radius:14px;
+  min-height:118px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  background:#f8fafc;cursor:pointer
+}
+.drop.drag{border-color:var(--teal);background:var(--cyan)}
+.drop input{display:none}
+.drop strong{color:#0b7180}
+.drop span{font-size:13px;color:var(--muted)}
+label{
+  display:block;font-size:14px;font-weight:700;
+  margin-top:18px
+}
+textarea{
+  width:100%;margin-top:8px;resize:vertical;min-height:120px;
+  border:1px solid var(--line);border-radius:12px;
+  padding:12px;font:14px/1.55 Consolas,monospace
+}
+.options{
+  display:flex;flex-wrap:wrap;gap:8px 18px;margin:18px 0
+}
+.options label{margin:0;font-weight:500}
+button{font:inherit}
+.input-panel>button{
+  width:100%;border:0;border-radius:12px;padding:14px 16px;
+  background:var(--teal);color:#062b28;font-weight:800;
+  cursor:pointer;display:flex;justify-content:space-between
+}
+.hint,.note{font-size:13px;line-height:1.6;color:var(--muted)}
+.workspace{padding:22px;min-width:0}
+.empty{
+  min-height:520px;display:grid;place-content:center;
+  text-align:center;color:var(--muted)
+}
+.empty h2{color:var(--ink);margin:18px 0 4px}
+.orb{
+  width:90px;height:90px;margin:auto;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff 0 6%,#52e0c5 7% 20%,#126a78 70%);
+  box-shadow:0 20px 60px #79dfcf
+}
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px
+}
+.stats div{background:#f7f9fc;border-radius:12px;padding:15px}
+.stats b{display:block;font-size:28px}
+.stats span{font-size:13px;color:var(--muted)}
+.tabs{
+  display:flex;gap:4px;margin:22px 0 16px;
+  border-bottom:1px solid var(--line)
+}
+.tabs button{
+  border:0;background:none;padding:10px 14px;
+  color:var(--muted);cursor:pointer
+}
+.tabs button.active{
+  color:var(--ink);font-weight:800;
+  border-bottom:3px solid var(--teal)
+}
+.tab{display:none}
+.tab.active{display:block}
+.toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;color:var(--muted);font-size:14px
+}
+.toolbar button{
+  border:1px solid var(--line);background:white;
+  border-radius:9px;padding:8px 12px;cursor:pointer
+}
+.table-wrap{
+  overflow:auto;max-height:590px;
+  border:1px solid var(--line);border-radius:12px
+}
+table{
+  border-collapse:collapse;width:100%;
+  min-width:920px;font-size:14px
+}
+th{
+  position:sticky;top:0;background:#eef3f8;
+  text-align:left;z-index:1
+}
+th,td{
+  padding:11px 12px;border-bottom:1px solid var(--line);
+  vertical-align:top;line-height:1.45
+}
+tbody tr:nth-child(even){background:#f8fbfd}
+.freq-list{display:grid;gap:10px}
+.freq-item{
+  display:grid;grid-template-columns:180px 1fr 50px;
+  align-items:center;gap:12px
+}
+.bar{
+  height:12px;background:#edf2f7;
+  border-radius:999px;overflow:hidden
+}
+.bar i{
+  display:block;height:100%;
+  background:linear-gradient(90deg,var(--teal),#4bb3fd);
+  border-radius:inherit
+}
+.share{min-height:460px;font-family:inherit;line-height:1.75}
+.tag{
+  display:inline-block;background:var(--cyan);
+  padding:2px 7px;border-radius:999px;font-size:12px
+}
+footer{
+  text-align:center;color:var(--muted);
+  font-size:12px;padding-bottom:20px
+}
+@media(max-width:900px){
+  header{padding:14px 18px;height:auto}
+  .brand p,.pill{display:none}
+  main{grid-template-columns:1fr;padding:14px}
+  .workspace{padding:14px}
+  .stats{grid-template-columns:1fr 1fr}
+  .freq-item{grid-template-columns:120px 1fr 36px}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <span class="mark">AR</span>
+    <div>
+      <h1>无界AR膜询单助手</h1>
+      <p>聊天记录在浏览器内完成分析，不上传业务数据</p>
+    </div>
+  </div>
+  <span class="pill">咨询未下单口径</span>
+</header>
+
+<main>
+  <section class="panel input-panel">
+    <div class="step">01 · 导入</div>
+    <h2>把记录放进来</h2>
+
+    <label class="drop" id="drop">
+      <input id="file" type="file" accept=".log,.txt">
+      <strong>选择聊天记录</strong>
+      <span id="fileName">支持 .log / .txt，也可拖入</span>
+    </label>
+
+    <label>
+      完整客户ID（每行一个，可选）
+      <textarea id="ids" placeholder="jd_xxxxx&#10;昵称或手机号_p"></textarea>
+    </label>
+
+    <div class="options">
+      <label><input type="checkbox" checked> 生成独立流失分析</label>
+      <label><input type="checkbox" checked> 生成群分享文案</label>
+    </div>
+
+    <button id="run">开始分析 <span>→</span></button>
+
+    <p class="hint">
+      默认将全部记录视为咨询未下单；日志订单提醒只标记为口径冲突。
+    </p>
+  </section>
+
+  <section class="workspace">
+    <div class="empty" id="empty">
+      <div class="orb"></div>
+      <h2>等待分析</h2>
+      <p>上传聊天记录后，这里会出现询单、高频问题和优化建议。</p>
+    </div>
+
+    <div id="results" hidden>
+      <div class="stats">
+        <div><b id="sSessions">0</b><span>会话</span></div>
+        <div><b id="sPre">0</b><span>售前</span></div>
+        <div><b id="sAfter">0</b><span>售后</span></div>
+        <div><b id="sConflict">0</b><span>订单信号冲突</span></div>
+      </div>
+
+      <nav class="tabs">
+        <button class="active" data-tab="detail">询单明细</button>
+        <button data-tab="lossTab">流失分析</button>
+        <button data-tab="freq">高频问题</button>
+        <button data-tab="share">群分享</button>
+      </nav>
+
+      <div id="detail" class="tab active">
+        <div class="toolbar">
+          <span>原六列格式</span>
+          <button id="download">下载Excel兼容文件</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>客户ID</th>
+                <th>售前/售后</th>
+                <th>是否下单</th>
+                <th>客户问题</th>
+                <th>问题汇总</th>
+              </tr>
+            </thead>
+            <tbody id="detailBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="lossTab" class="tab">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>客户ID</th>
+                <th>会话定位</th>
+                <th>购买阻碍/风险</th>
+                <th>判断依据</th>
+                <th>可优化项</th>
+                <th>优化建议</th>
+              </tr>
+            </thead>
+            <tbody id="lossBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="freq" class="tab">
+        <div id="freqList" class="freq-list"></div>
+        <p class="note">
+          同一通可包含多个主题；次数按会话统计，不等于独立客户数。
+        </p>
+      </div>
+
+      <div id="share" class="tab">
+        <div class="toolbar">
+          <span>可直接发群</span>
+          <button id="copy">复制文案</button>
+        </div>
+        <textarea id="shareText" class="share"></textarea>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>无界AR膜 · 询单分析工作台</footer>
+
+<script>
+const $ = selector => document.querySelector(selector);
+
+const escapeHtml = value =>
+  String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+
+let rawLog = "";
+let rows = [];
+
+const fileInput = $("#file");
+const dropArea = $("#drop");
+
+fileInput.addEventListener("change", () => {
+  loadFile(fileInput.files[0]);
+});
+
+["dragenter", "dragover"].forEach(eventName => {
+  dropArea.addEventListener(eventName, event => {
+    event.preventDefault();
+    dropArea.classList.add("drag");
+  });
+});
+
+["dragleave", "drop"].forEach(eventName => {
+  dropArea.addEventListener(eventName, event => {
+    event.preventDefault();
+    dropArea.classList.remove("drag");
+  });
+});
+
+dropArea.addEventListener("drop", event => {
+  loadFile(event.dataTransfer.files[0]);
+});
+
+function loadFile(file) {
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    rawLog = reader.result;
+    $("#fileName").textContent = file.name;
+  };
+
+  reader.readAsText(file, "utf-8");
+}
+
+function parseMessages(block) {
+  const messages = [];
+  const lines = block.split(/\r?\n/);
+  let currentMessage;
+
+  for (let line of lines) {
+    line = line.trim();
+
+    const header = line.match(
+      /^(.+?)\s+(20\d{2}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})$/
+    );
+
+    if (header) {
+      if (currentMessage) messages.push(currentMessage);
+
+      currentMessage = {
+        speaker: header[1],
+        date: header[2],
+        time: header[3],
+        body: []
+      };
+    } else if (
+      currentMessage &&
+      line &&
+      !line.startsWith("/***")
+    ) {
+      currentMessage.body.push(
+        line
+          .replace(/<br\s*\/?\s*>/gi, " ")
+          .replace(/<[^>]*>/g, "")
+      );
+    }
+  }
+
+  if (currentMessage) messages.push(currentMessage);
+  return messages;
+}
+
+function matchCustomerId(sourceId, completeIds) {
+  const candidates = completeIds.filter(id => {
+    if (!sourceId.includes("*")) return id === sourceId;
+
+    const prefix = sourceId.slice(0, sourceId.indexOf("*"));
+    const suffix = sourceId.slice(sourceId.lastIndexOf("*") + 1);
+
+    return id.startsWith(prefix) && id.endsWith(suffix);
+  });
+
+  if (candidates.length === 1) return candidates[0];
+
+  if (candidates.length > 1) {
+    return "待核对：" + candidates.join("、");
+  }
+
+  return sourceId || "缺失";
+}
+
+const categoryRules = [
+  ["价格异议", /贵|便宜|价格|优惠/],
+  ["售后保障", /售后|质保|换新|补发|包赔|贴坏/],
+  ["贴膜操作", /怎么贴|教程|安装|无尘仓|贴膜神器|视频/],
+  ["贴后问题", /气泡|白边|进灰|翘边|瑕疵|不清楚|碎了/],
+  ["机型适配", /型号|适配|通用|iphone|苹果|\b1[4-9](?:p|pro|pm|air|plus)/i],
+  ["产品差异", /区别|不同|原感|无界|泰坦|同款|一样/],
+  ["工艺参数", /热弯|3d|2\.5d|反射|透光|ar|黑边|防窥|厚度|材质/i],
+  ["库存物流", /发货|物流|仓库|到货/],
+  ["订单咨询", /订单|地址/]
+];
+
+function analyze() {
+  if (!rawLog) {
+    alert("请先选择聊天记录");
+    return;
+  }
+
+  const completeIds = $("#ids").value
+    .split(/\r?\n/)
+    .map(value => value.trim())
+    .filter(Boolean);
+
+  const sessionBlocks = rawLog
+    .split(/\/\*+以下为一通会话\*+\//)
+    .filter(block => block.includes("会话结束"));
+
+  rows = sessionBlocks.map((block, index) => {
+    const messages = parseMessages(block);
+
+    const customerMessages = messages.filter(
+      message => !message.speaker.startsWith("图拉斯旗舰店-")
+    );
+
+    const serviceMessages = messages.filter(
+      message => message.speaker.startsWith("图拉斯旗舰店-")
+    );
+
+    const sourceId = customerMessages[0]?.speaker || "";
+
+    const customerQuestion =
+      customerMessages
+        .flatMap(message => message.body)
+        .filter(text =>
+          text &&
+          !/^https?:\/\//.test(text) &&
+          !/^#E-/.test(text)
+        )
+        .join("；") ||
+      "无可识别文字问题／仅图片或链接";
+
+    const serviceAnswer = serviceMessages
+      .flatMap(message => message.body)
+      .join("；");
+
+    const orderConflict =
+      /订单已确认|已收到你的订单/.test(serviceAnswer);
+
+    const isAfterSale =
+      /咨询订单号|气泡|进灰|碎了|昨天贴|刚贴|瑕疵|贴上|贴完|不清楚|可以售后/
+        .test(customerQuestion);
+
+    const summary =
+      categoryRules
+        .filter(rule => rule[1].test(customerQuestion))
+        .map(rule => rule[0])
+        .join("、") ||
+      "其他咨询";
+
+    let risk =
+      "原因不明确：未下单事实已确认，但不能从沉默推断具体原因";
+
+    let optimization = "证据不足";
+
+    let evidence =
+      `客户：${customerQuestion.slice(0, 140)}；未见明确拒购原因`;
+
+    let advice =
+      "确认机型与选择标准，补足未解决信息；客户沉默后进行一次自然跟进。";
+
+    if (/在优惠个5块就买了/.test(customerQuestion)) {
+      risk = "明确购买条件未满足：希望再优惠5元";
+      optimization = "价格异议承接";
+      evidence =
+        "客户明确表示“再优惠5块就买了”，客服继续重复活动说明";
+      advice =
+        "核对可用优惠；无法满足时明确说明，并提供预算内替代款。";
+    } else if (
+      /17pro/i.test(customerQuestion) &&
+      /17promax/i.test(serviceAnswer)
+    ) {
+      risk = "可能阻碍：机型回复错配，增加买错顾虑";
+      optimization = "机型/SKU核对";
+      evidence = "客户说17 Pro，回复涉及17 Pro Max";
+      advice =
+        "复述完整机型，核对SKU后只发送一个匹配链接。";
+    } else if (/我不要防窥膜/.test(customerQuestion)) {
+      risk =
+        "可能阻碍：推荐款式错配；后续虽纠正，仍可能增加决策成本";
+      optimization = "需求确认";
+      evidence = "客户明确表示不要防窥膜";
+      advice =
+        "发链接前先确认机型及高清/防窥需求，纠正时说明旧链接不用选。";
+    } else if (/贴膜神器是一次性/.test(customerQuestion)) {
+      risk = "可能阻碍：工具复用问题未被准确回答";
+      optimization = "精准回答";
+      evidence = "客户问工具，客服回复内容偏向胶质拆卸";
+      advice =
+        "区分膜和无尘仓，核实工具能否复用及耗材限制后直答。";
+    } else if (/就一张，贴坏了咋办/.test(customerQuestion)) {
+      risk = "可能阻碍：单片贴坏顾虑未明确消除";
+      optimization = "保障说明";
+      evidence =
+        "客服使用“不会贴坏”等保证性表达，未先明确适用条件";
+      advice =
+        "说明片数、工具、教程和该SKU实际保障条件，不保证零失败。";
+    } else if (isAfterSale) {
+      risk = "售后服务问题，不计为本次售前购买阻碍";
+      optimization = "售后闭环";
+      advice =
+        "收集图片、订单与机型，说明处理步骤并确认结果，不继续催拍。";
+    } else if (/转接/.test(serviceAnswer)) {
+      risk = "可能阻碍：本通未闭环，转接结果未知";
+      optimization = "转接闭环";
+      advice =
+        "同步客户需求，告知下一步，并结合后续会话确认是否解决。";
+    }
+
+    if (orderConflict) {
+      evidence +=
+        "；日志出现订单提醒，与“本批未下单”口径冲突，不计成交";
+    }
+
+    return {
+      number: index + 1,
+      date: customerMessages[0]?.date || messages[0]?.date || "",
+      customerId: matchCustomerId(sourceId, completeIds),
+      sourceId,
+      stage: isAfterSale ? "售后" : "售前",
+      status: "未下单",
+      question: customerQuestion,
+      summary,
+      risk,
+      evidence,
+      optimization,
+      advice,
+      orderConflict
+    };
+  });
+
+  renderResults();
+}
+
+function renderResults() {
+  const preSaleCount =
+    rows.filter(row => row.stage === "售前").length;
+
+  $("#sSessions").textContent = rows.length;
+  $("#sPre").textContent = preSaleCount;
+  $("#sAfter").textContent = rows.length - preSaleCount;
+
+  $("#sConflict").textContent =
+    rows.filter(row => row.orderConflict).length;
+
+  $("#detailBody").innerHTML = rows.map(row => `
+    <tr>
+      <td>${escapeHtml(row.date)}</td>
+      <td>${escapeHtml(row.customerId)}</td>
+      <td><span class="tag">${row.stage}</span></td>
+      <td>未下单</td>
+      <td>${escapeHtml(row.question)}</td>
+      <td>${escapeHtml(row.summary)}</td>
+    </tr>
+  `).join("");
+
+  $("#lossBody").innerHTML = rows.map(row => `
+    <tr>
+      <td>${escapeHtml(row.customerId)}</td>
+      <td>
+        ${escapeHtml(row.date)} · 会话${row.number}
+        <br><small>${escapeHtml(row.sourceId)}</small>
+      </td>
+      <td>${escapeHtml(row.risk)}</td>
+      <td>${escapeHtml(row.evidence)}</td>
+      <td>${escapeHtml(row.optimization)}</td>
+      <td>${escapeHtml(row.advice)}</td>
+    </tr>
+  `).join("");
+
+  const frequencyRules = [
+    ["款式区别/如何选择", /区别|不同|同款|一样|ar膜就这一款/],
+    ["黑边/覆盖/边缘工艺", /黑边|覆盖|全屏|弧边|弧度|3d|2\.5d|热弯|小了一点|短一截/i],
+    ["贴膜操作/工具/贴坏顾虑", /怎么贴|安装视频|使用视频|贴膜视频|贴膜神器|贴坏|包赔|手残/],
+    ["保障/质保/换新", /质保|换新|给换|包赔|贴坏|质量问题.*换/],
+    ["机型/型号/链接适配", /16pm|15plus|17 promax|17pro|18pro|17 18|什么型号/i],
+    ["材质/厚度", /康宁|厚度|钢化膜，还是软/],
+    ["价格/优惠", /贵|优惠|便宜/]
+  ];
+
+  const frequencies = frequencyRules.map(rule => [
+    rule[0],
+    rows.filter(row =>
+      !row.question.includes("小冰块") &&
+      rule[1].test(row.question)
+    ).length
+  ]).sort((a, b) => b[1] - a[1]);
+
+  const maximum = frequencies[0]?.[1] || 1;
+
+  $("#freqList").innerHTML = frequencies.map(item => `
+    <div class="freq-item">
+      <span>${item[0]}</span>
+      <div class="bar">
+        <i style="width:${item[1] / maximum * 100}%"></i>
+      </div>
+      <b>${item[1]}</b>
+    </div>
+  `).join("");
+
+  $("#shareText").value = buildGroupShare(frequencies);
+
+  $("#empty").hidden = true;
+  $("#results").hidden = false;
+}
+
+function buildGroupShare(frequencies) {
+  return `家人们，近日询单总结来啦～[冲！]
+
+本次共分析${rows.length}通咨询未下单会话。问得最多的是“${frequencies[0]?.[0]}”，共${frequencies[0]?.[1]}通；其次是“${frequencies[1]?.[0]}”，共${frequencies[1]?.[1]}通。
+
+新机询单量大，大家优先做到：先回答问题—确认完整机型—推荐一个匹配款—消除顾虑—再自然催拍。客户没选明白时先别急着推配件。
+
+关于很多客户问是否为3D：这款是2.5D微弧边，不是3D。边缘经过圆弧打磨，具体覆盖效果以对应机型实拍和SKU资料为准。
+
+可分行发送：
+宝宝，这款无界AR膜是2.5D微弧边哦～边缘做了圆弧打磨，划屏和握持更顺滑，我给您看对应机型实拍。
+
+咱家这款是无黑边设计，视野更开阔；AR抗反射能减少屏幕反光。我先帮您核对完整机型，再发对应链接哈～
+
+推荐时可以多提配套无尘仓和操作教程，但赠品、保障、物流都要按当前SKU核实。大家抓住新机流量，问题答清楚后及时跟进，有不确定的地方马上在群里沟通～[加油！]`;
+}
+
+$("#run").addEventListener("click", analyze);
+
+document.querySelectorAll(".tabs button").forEach(button => {
+  button.addEventListener("click", () => {
+    document
+      .querySelectorAll(".tabs button,.tab")
+      .forEach(element => element.classList.remove("active"));
+
+    button.classList.add("active");
+    $("#" + button.dataset.tab).classList.add("active");
+  });
+});
+
+$("#copy").addEventListener("click", async () => {
+  await navigator.clipboard.writeText($("#shareText").value);
+
+  $("#copy").textContent = "已复制";
+
+  setTimeout(() => {
+    $("#copy").textContent = "复制文案";
+  }, 1200);
+});
+
+$("#download").addEventListener("click", () => {
+  if (!rows.length) return;
+
+  const sheets = [
+    [
+      "询单明细",
+      ["日期","客户ID","售前/售后","是否下单","客户问题","问题汇总"],
+      rows.map(row => [
+        row.date,
+        row.customerId,
+        row.stage,
+        row.status,
+        row.question,
+        row.summary
+      ])
+    ],
+    [
+      "流失分析",
+      ["客户ID","会话定位","购买阻碍/流失风险","判断依据","可优化项","优化建议"],
+      rows.map(row => [
+        row.customerId,
+        `${row.date} 会话${row.number}`,
+        row.risk,
+        row.evidence,
+        row.optimization,
+        row.advice
+      ])
+    ]
+  ];
+
+  const worksheets = sheets.map(sheet => `
+    <Worksheet ss:Name="${sheet[0]}">
+      <Table>
+        ${[sheet[1], ...sheet[2]].map((row, index) => `
+          <Row>
+            ${row.map(cell => `
+              <Cell${index === 0 ? ' ss:StyleID="header"' : ""}>
+                <Data ss:Type="String">${escapeHtml(cell)}</Data>
+              </Cell>
+            `).join("")}
+          </Row>
+        `).join("")}
+      </Table>
+    </Worksheet>
+  `).join("");
+
+  const workbook = `<?xml version="1.0"?>
+    <Workbook
+      xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+      xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+      <Styles>
+        <Style ss:ID="header">
+          <Font ss:Bold="1"/>
+          <Interior ss:Color="#DFF8F3" ss:Pattern="Solid"/>
+        </Style>
+      </Styles>
+      ${worksheets}
+    </Workbook>`;
+
+  const blob = new Blob(
+    [workbook],
+    { type: "application/vnd.ms-excel" }
+  );
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "无界AR膜询单及流失分析.xls";
+  link.click();
+
+  URL.revokeObjectURL(link.href);
+});
+</script>
+</body>
+</html>
